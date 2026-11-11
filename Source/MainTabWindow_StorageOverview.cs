@@ -660,6 +660,10 @@ namespace StorageOverview
                 {
                     Widgets.DrawBoxSolid(new Rect(scroll.x, y, bodyRect.width - ScrollBarSize, RowHeight), DimColor);
                 }
+                if (rows[r].kind == RowKind.Category)
+                {
+                    Widgets.DrawBoxSolid(new Rect(scroll.x, y + RowHeight - 1f, bodyRect.width - ScrollBarSize, 1f), CategoryLineColor);
+                }
             }
             if (marked.Count > 0)
             {
@@ -690,6 +694,12 @@ namespace StorageOverview
                 if (RowRejected(rows[r]))
                 {
                     Widgets.DrawBoxSolid(rowRect, DimColor);
+                }
+                if (rows[r].kind == RowKind.Category)
+                {
+                    // Underline starts at the row's indent so nested groups read as a tree.
+                    float x = MarkBoxWidth + rows[r].indent * IndentWidth;
+                    Widgets.DrawBoxSolid(new Rect(x, rowRect.yMax - 1f, TreeWidth - x, 1f), CategoryLineColor);
                 }
             }
             Widgets.EndGroup();
@@ -851,6 +861,9 @@ namespace StorageOverview
         }
 
         private static readonly Color DimColor = new Color(0f, 0f, 0f, 0.45f);
+
+        /// <summary>Underline below every category row (collapsed or not), marking section breaks.</summary>
+        private static readonly Color CategoryLineColor = new Color(1f, 1f, 1f, 0.22f);
 
         /// <summary>
         /// True when every shown storage that could hold the row's items refuses all of them.
