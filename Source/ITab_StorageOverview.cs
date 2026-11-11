@@ -8,7 +8,7 @@ namespace StorageOverview
 {
     /// <summary>
     /// Inspect tab button next to the vanilla Storage tab. It never shows a panel: opening
-    /// it opens the overview table focused on the selected storage.
+    /// it opens the overview table.
     /// </summary>
     public class ITab_StorageOverview : ITab
     {
@@ -24,31 +24,12 @@ namespace StorageOverview
         /// </summary>
         protected override void FillTab()
         {
-            IStoreSettingsParent focus = OwnerOf(SelObject);
             if (MainButtonDefOf.Inspect.TabWindow is MainTabWindow_Inspect inspect)
             {
                 inspect.OpenTabType = null;
             }
             MainButtonDef def = DefDatabase<MainButtonDef>.GetNamed("StorageOverview");
-            if (def.TabWindow is MainTabWindow_StorageOverview window)
-            {
-                window.FocusOn(focus);
-            }
             Find.MainTabsRoot.SetCurrentTab(def);
-        }
-
-        /// <summary>The settings owner the overview shows as a column for this selection.</summary>
-        public static IStoreSettingsParent OwnerOf(object selected)
-        {
-            switch (selected)
-            {
-                case IStorageGroupMember member when member.Group != null:
-                    return member.Group;
-                case IStoreSettingsParent parent:
-                    return parent;
-                default:
-                    return null;
-            }
         }
     }
 

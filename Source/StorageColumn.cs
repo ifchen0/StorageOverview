@@ -27,6 +27,10 @@ namespace StorageOverview
         public readonly bool hitPointsConfigurable;
         public readonly bool qualityConfigurable;
 
+        /// <summary>Bounding cells of this single storage (zone cells or member buildings).</summary>
+        public readonly CellRect bounds;
+        public readonly bool hasBounds;
+
         /// <summary>The storages this column stands for; just this one unless merged.</summary>
         public readonly List<StorageColumn> members;
 
@@ -37,6 +41,7 @@ namespace StorageOverview
             this.owner = owner;
             this.label = label;
             members = new List<StorageColumn> { this };
+            hasBounds = TryGetBounds(owner, out bounds);
             settings = owner.GetStoreSettings();
             ThingFilter parentFilter = owner.GetParentStoreSettings()?.filter;
             hitPointsConfigurable = parentFilter?.allowedHitPointsConfigurable ?? true;
@@ -66,12 +71,51 @@ namespace StorageOverview
             visibleSpecials = first.visibleSpecials;
             hitPointsConfigurable = first.hitPointsConfigurable;
             qualityConfigurable = first.qualityConfigurable;
+            bounds = first.bounds;
+            hasBounds = first.hasBounds;
             members = group;
             bool sameName = group.All(m => m.label == first.label);
             label = sameName ? first.label + "×" + group.Count : first.label + " +" + (group.Count - 1);
         }
 
         public ThingFilter Filter => settings.filter;
+
+        /// <summary>Whether any member lies (by bounding rect) inside the given cells.</summary>
+        public bool AnyMemberIn(CellRect view) => members.Exists(m => m.hasBounds && m.bounds.Overlaps(view));
+
+        private static bool TryGetBounds(IStoreSettingsParent owner, out CellRect rect)
+        {
+            CellRect result = default;
+            bool any = false;
+            void Add(CellRect r)
+            {
+                result = any ? result.Encapsulate(r) : r;
+                any = true;
+            }
+            switch (owner)
+            {
+                case Zone zone:
+                    foreach (IntVec3 cell in zone.Cells)
+                    {
+                        Add(new CellRect(cell.x, cell.z, 1, 1));
+                    }
+                    break;
+                case StorageGroup group:
+                    foreach (IStorageGroupMember member in group.members)
+                    {
+                        if (member is Thing thing && thing.Spawned)
+                        {
+                            Add(thing.OccupiedRect());
+                        }
+                    }
+                    break;
+                case Thing thing when thing.Spawned:
+                    Add(thing.OccupiedRect());
+                    break;
+            }
+            rect = result;
+            return any;
+        }
 
         /// <summary>Stack counts by def of what this single storage holds right now.</summary>
         public Dictionary<ThingDef, int> CountHeld()
@@ -157,7 +201,8 @@ namespace StorageOverview
         /// special filters it can list and allows, priority, and the two ranges. Equal
         /// signatures mean the columns would look and behave the same.
         /// </summary>
-        private string Signature()
+        /// <param name="itemsOnly">Compare only item and special filters, not priority or ranges.</param>
+        private string Signature(bool itemsOnly)
         {
             storableDefs ??= ThingCategoryNodeDatabase.RootNode.catDef.DescendantThingDefs.Distinct().ToList();
             var sb = new StringBuilder(storableDefs.Count + 64);
@@ -170,6 +215,10 @@ namespace StorageOverview
             foreach (SpecialThingFilterDef sf in DefDatabase<SpecialThingFilterDef>.AllDefsListForReading)
             {
                 sb.Append(!visibleSpecials.Contains(sf) ? '-' : filter.Allows(sf) ? '1' : '0');
+            }
+            if (itemsOnly)
+            {
+                return sb.ToString();
             }
             sb.Append('|').Append((int)settings.Priority);
             if (hitPointsConfigurable)
@@ -184,13 +233,13 @@ namespace StorageOverview
         }
 
         /// <summary>Folds columns with identical signatures into one, keeping the input order.</summary>
-        public static List<StorageColumn> MergeIdentical(List<StorageColumn> columns)
+        public static List<StorageColumn> MergeIdentical(List<StorageColumn> columns, bool itemsOnly)
         {
             var groups = new Dictionary<string, List<StorageColumn>>();
             var order = new List<List<StorageColumn>>();
             foreach (StorageColumn column in columns)
             {
-                string key = column.Signature();
+                string key = column.Signature(itemsOnly);
                 if (!groups.TryGetValue(key, out List<StorageColumn> group))
                 {
                     group = new List<StorageColumn>();

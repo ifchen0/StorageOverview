@@ -76,9 +76,6 @@ namespace StorageOverview
         private readonly Dictionary<ThingCategoryDef, bool[]> categoryHeld = new Dictionary<ThingCategoryDef, bool[]>();
         private int heldFrame = -1;
 
-        /// <summary>Storage picked from its inspect tab; the table opens scrolled to its column.</summary>
-        private IStoreSettingsParent focusOwner;
-        private bool focusPending;
         /// <summary>Things of each def on the map (minified buildings by their inner def).</summary>
         private readonly Dictionary<ThingDef, int> mapCounts = new Dictionary<ThingDef, int>();
         /// <summary>Defs no storage allows; fixed until the rows are rebuilt so ticking a box
@@ -117,6 +114,13 @@ namespace StorageOverview
         // Show storages with identical settings as one column (on by default).
         private bool mergeIdentical = true;
 
+        // Merge by item filters only, for adjusting the items of similar storages together.
+        // Members of one column may then differ in priority, hit points and quality, so
+        // those rows and copy/paste (which carries them) are disabled while it is on.
+        private bool mergeItemsOnly;
+
+        private bool ItemsOnly => mergeIdentical && mergeItemsOnly;
+
         // Rename dialog opened from a header; names are re-read once it closes.
         private Window renameDialog;
         private bool columnsDirty;
@@ -124,15 +128,6 @@ namespace StorageOverview
         public override Vector2 RequestedTabSize => new Vector2(Mathf.Round(UI.screenWidth * WidthFraction), UI.screenHeight - MainButtonBarHeight);
 
         private QuickSearchFilter Search => search.filter;
-
-        /// <summary>Called by the inspect tab right before the table opens.</summary>
-        public void FocusOn(IStoreSettingsParent owner)
-        {
-            focusOwner = owner;
-            focusPending = owner != null;
-        }
-
-        private bool HasFocus(StorageColumn column) => focusOwner != null && column.members.Exists(m => m.owner == focusOwner);
 
         /// <summary>Rows are narrowed down and categories open on their own.</summary>
         private bool Filtering => Search.Active || viewMode != ViewMode.All;
@@ -151,11 +146,9 @@ namespace StorageOverview
         public override void PreOpen()
         {
             base.PreOpen();
-            // Opened from the main bar: focus whatever storage is selected, like the tab does.
-            if (!focusPending)
-            {
-                FocusOn(ITab_StorageOverview.OwnerOf(Find.Selector.SingleSelectedObject));
-            }
+            // Always start at the leftmost column: marks sort the related columns there, and
+            // nothing in the table shows which column is the selected storage.
+            scroll.x = 0f;
             Rebuild();
         }
 
@@ -257,7 +250,7 @@ namespace StorageOverview
             columns = filter.Active ? allColumns.FindAll(c => c.NameMatches(filter)) : new List<StorageColumn>(allColumns);
             if (mergeIdentical)
             {
-                columns = StorageColumn.MergeIdentical(columns);
+                columns = StorageColumn.MergeIdentical(columns, itemsOnly: mergeItemsOnly);
             }
             OrderByMarks();
             anyVisible.Clear();
@@ -539,15 +532,6 @@ namespace StorageOverview
                 InvalidateStates();
                 stateCacheFrame = Time.frameCount;
             }
-            if (focusPending)
-            {
-                focusPending = false;
-                int index = columns.FindIndex(HasFocus);
-                if (index >= 0)
-                {
-                    scroll.x = Mathf.Max(0f, (index - 2) * ColumnWidth);
-                }
-            }
             Text.Font = GameFont.Small;
             if (allColumns.Count == 0)
             {
@@ -597,6 +581,7 @@ namespace StorageOverview
                 lastRow--;
             }
 
+            CellRect mapView = VisibleMapCells();
             DrawCorner(cornerRect);
 
             Widgets.BeginScrollView(bodyRect, ref scroll, viewRect);
@@ -618,13 +603,16 @@ namespace StorageOverview
                 {
                     if (RowHeight <= visibleBottom)
                     {
-                        DrawPriorityCell(new Rect(c * ColumnWidth, 0f, ColumnWidth, RowHeight), columns[c]);
+                        if (!ItemsOnly)
+                        {
+                            DrawPriorityCell(new Rect(c * ColumnWidth, 0f, ColumnWidth, RowHeight), columns[c]);
+                        }
                     }
-                    if (HitPointsRowY + RangeRowHeight <= visibleBottom)
+                    if (!ItemsOnly && HitPointsRowY + RangeRowHeight <= visibleBottom)
                     {
                         DrawRangeCell(new Rect(c * ColumnWidth, HitPointsRowY, ColumnWidth, RangeRowHeight), columns[c], quality: false);
                     }
-                    if (QualityRowY + RangeRowHeight <= visibleBottom)
+                    if (!ItemsOnly && QualityRowY + RangeRowHeight <= visibleBottom)
                     {
                         DrawRangeCell(new Rect(c * ColumnWidth, QualityRowY, ColumnWidth, RangeRowHeight), columns[c], quality: true);
                     }
@@ -686,6 +674,11 @@ namespace StorageOverview
                 if (c == hoverColumn)
                 {
                     Widgets.DrawHighlight(rect);
+                }
+                if (columns[c].AnyMemberIn(mapView))
+                {
+                    // Storage visible in the map strip right of the table.
+                    Widgets.DrawBoxSolid(rect, InViewColor);
                 }
                 DrawHeader(rect, columns[c]);
                 if (Unrelated(columns[c]))
@@ -758,7 +751,8 @@ namespace StorageOverview
             Rect columnSearchRect = new Rect(searchRect.x, searchRect.y - searchHeight - gap, searchRect.width, searchHeight);
             float buttonWidth = (rect.width - 8f - 2f * gap) / 3f;
             Rect buttonRect = new Rect(rect.x, columnSearchRect.y - 28f - gap, buttonWidth, 28f);
-            Rect mergeRect = new Rect(rect.x, buttonRect.y - 24f - gap, rect.width - 8f, 24f);
+            Rect itemsOnlyRect = new Rect(rect.x + 16f, buttonRect.y - 24f - gap, rect.width - 24f, 24f);
+            Rect mergeRect = new Rect(rect.x, itemsOnlyRect.y - 24f, rect.width - 8f, 24f);
             Rect modeRect = new Rect(rect.x, mergeRect.y - 28f - gap, rect.width - 40f, 28f);
             Rect helpRect = new Rect(modeRect.xMax + 8f, modeRect.y, 24f, 28f);
 
@@ -793,6 +787,15 @@ namespace StorageOverview
             if (merge != mergeIdentical)
             {
                 mergeIdentical = merge;
+                columnsDirty = true;
+            }
+            TooltipHandler.TipRegion(itemsOnlyRect, "StorageOverview_MergeItemsOnlyTip".Translate());
+            bool ignore = mergeItemsOnly;
+            Widgets.CheckboxLabeled(itemsOnlyRect, "StorageOverview_MergeItemsOnly".Translate(), ref ignore,
+                disabled: !mergeIdentical);
+            if (ignore != mergeItemsOnly)
+            {
+                mergeItemsOnly = ignore;
                 columnsDirty = true;
             }
             if (Widgets.ButtonText(buttonRect, "StorageOverview_CollapseAll".Translate()))
@@ -858,6 +861,20 @@ namespace StorageOverview
             return rejected;
         }
 
+        private static readonly Color InViewColor = new Color(1f, 1f, 1f, 0.16f);
+
+        /// <summary>Map cells shown in the strip right of this tab (screen space is bottom-up).</summary>
+        private CellRect VisibleMapCells()
+        {
+            if (Find.CurrentMap == null || Find.Camera == null)
+            {
+                return new CellRect(-1, -1, 0, 0);
+            }
+            IntVec3 a = UI.UIToMapPosition(new Vector2(windowRect.xMax, MainButtonBarHeight)).ToIntVec3();
+            IntVec3 b = UI.UIToMapPosition(new Vector2(UI.screenWidth, UI.screenHeight)).ToIntVec3();
+            return CellRect.FromLimits(Mathf.Min(a.x, b.x), Mathf.Min(a.z, b.z), Mathf.Max(a.x, b.x), Mathf.Max(a.z, b.z));
+        }
+
         private static string ModeLabel(ViewMode mode)
         {
             switch (mode)
@@ -871,12 +888,14 @@ namespace StorageOverview
             }
         }
 
-        private static void DrawRangeLabels(Rect rect)
+        private void DrawRangeLabels(Rect rect)
         {
             Text.Anchor = TextAnchor.MiddleLeft;
+            GUI.color = ItemsOnly ? Color.gray : Color.white;
             Widgets.Label(new Rect(rect.x + 22f, rect.y, rect.width - 22f, RowHeight), "Priority".Translate().CapitalizeFirst());
             Widgets.Label(new Rect(rect.x + 22f, rect.y + HitPointsRowY, rect.width - 22f, RangeRowHeight), "HitPointsBasic".Translate().CapitalizeFirst());
             Widgets.Label(new Rect(rect.x + 22f, rect.y + QualityRowY, rect.width - 22f, RangeRowHeight), "Quality".Translate().CapitalizeFirst());
+            GUI.color = Color.white;
             Text.Anchor = TextAnchor.UpperLeft;
             Widgets.DrawLineHorizontal(rect.x, rect.y + HitPointsRowY, rect.width);
             Widgets.DrawLineHorizontal(rect.x, rect.y + QualityRowY, rect.width);
@@ -990,7 +1009,7 @@ namespace StorageOverview
             }
             Text.Anchor = TextAnchor.UpperLeft;
             string names = column.IsMerged ? column.MemberNames() : column.label;
-            TooltipHandler.TipRegion(rect, "StorageOverview_ColumnTip".Translate(names, column.Priority.Label()));
+            TooltipHandler.TipRegion(rect, ItemsOnly ? names : "StorageOverview_ColumnTip".Translate(names, column.Priority.Label()).ToString());
             Event e = Event.current;
             if (e.type == EventType.MouseDown && e.button == 1 && rect.Contains(e.mousePosition))
             {
@@ -1010,9 +1029,10 @@ namespace StorageOverview
             var options = new List<FloatMenuOption>();
             bool renamable = column.members.Exists(m => RenameDialogFor(m.owner) != null);
             options.Add(new FloatMenuOption("Rename".Translate(), renamable ? () => OpenRename(column) : (System.Action)null));
-            options.Add(new FloatMenuOption("CommandCopyZoneSettingsLabel".Translate(), () => StorageSettingsClipboard.Copy(column.settings)));
+            options.Add(new FloatMenuOption("CommandCopyZoneSettingsLabel".Translate(),
+                ItemsOnly ? (System.Action)null : () => StorageSettingsClipboard.Copy(column.settings)));
             options.Add(new FloatMenuOption("CommandPasteZoneSettingsLabel".Translate(),
-                StorageSettingsClipboard.HasCopiedSettings ? () => PasteInto(column) : (System.Action)null));
+                !ItemsOnly && StorageSettingsClipboard.HasCopiedSettings ? () => PasteInto(column) : (System.Action)null));
             Find.WindowStack.Add(new FloatMenu(options));
         }
 
@@ -1371,7 +1391,8 @@ namespace StorageOverview
                         DrawHeldTint(rect, true);
                         TooltipHandler.TipRegion(rect, "StorageOverview_HeldTip".Translate(column.label, row.def.LabelCap, heldCount));
                     }
-                    if (on && column.Priority == DestinationPriority(row.def))
+                    StoragePriority? destination = DestinationPriority(row.def);
+                    if (on && column.members.Exists(m => m.settings.Priority == destination))
                     {
                         // Where haulers take this item: the highest priority storage allowing it
                         // (all of them on a tie, vanilla then picks the nearest).

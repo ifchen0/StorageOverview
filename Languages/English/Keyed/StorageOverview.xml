@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <StorageOverview_NoStorage>There are no stockpiles or storage buildings on this map.</StorageOverview_NoStorage>
-  <StorageOverview_Hint>Wheel: scroll rows. Shift + wheel, or wheel over the storage names: scroll columns.\nClick a storage name: show it on the map to the right.\nRight-click a storage name: rename, copy or paste settings.\nBlue outline: where haulers take the item (the highest priority storage that accepts it; on a tie all are outlined and the nearest one is used).\nTick the box at the left of an item to mark it: storages accepting marked items move to the left.\nLight blue cell: the storage currently holds the item (hover for the count).</StorageOverview_Hint>
+  <StorageOverview_Hint>Wheel: scroll rows. Shift + wheel, or wheel over the storage names: scroll columns.\nClick a storage name: show it on the map to the right.\nRight-click a storage name: rename, copy or paste settings.\nBlue outline: where haulers take the item (the highest priority storage that accepts it; on a tie all are outlined and the nearest one is used).\nTick the box at the left of an item to mark it: storages accepting marked items move to the left.\nLight blue cell: the storage currently holds the item (hover for the count).\nBrighter storage name: the storage is in the map view to the right.</StorageOverview_Hint>
   <StorageOverview_CollapseAll>Collapse all</StorageOverview_CollapseAll>
   <StorageOverview_ExpandAll>Expand all</StorageOverview_ExpandAll>
   <StorageOverview_SearchItems>Items</StorageOverview_SearchItems>
@@ -18,4 +18,6 @@
   <StorageOverview_SettingOpenFrom>Open the table from:</StorageOverview_SettingOpenFrom>
   <StorageOverview_OpenFromMainBar>The main button bar (bottom of the screen)</StorageOverview_OpenFromMainBar>
   <StorageOverview_OpenFromInspectTab>The leftmost "Overview" tab of a selected stockpile or storage building</StorageOverview_OpenFromInspectTab>
+  <StorageOverview_MergeItemsOnly>Merge by item filters only</StorageOverview_MergeItemsOnly>
+  <StorageOverview_MergeItemsOnlyTip>Only item and special filters are compared, so storages with different priority, hit points or quality are merged too, for changing the items of similar storages together. These three may differ inside one column, so showing and changing them, and copying and pasting settings, are disabled while this is on.</StorageOverview_MergeItemsOnlyTip>
 </LanguageData>

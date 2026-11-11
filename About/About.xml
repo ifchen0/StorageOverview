@@ -10,14 +10,14 @@
 Shows the storage filters of every stockpile, shelf and storage group on the map side by side in one table.
 
 Opening it
-Click the Storage button on the main button bar. In the mod settings it can be moved to an Overview tab instead, the leftmost tab of a selected stockpile or storage building. If a storage is selected when the table opens, it scrolls to that storage.
+Click the Storage button on the main button bar. In the mod settings it can be moved to an Overview tab instead, the leftmost tab of a selected stockpile or storage building.
 
 The table
 - The item tree on the left is the vanilla storage tree; each storage is a column of the usual checkboxes, and opening a category opens it for every column.
 - Ticking a box works exactly like the vanilla storage tab, including click-and-drag painting.
 - Priority, hit points and quality are rows at the top.
-- Storages with identical settings are merged into one column (can be turned off).
-- Click a storage name to show it on the map; right-click it to rename it or copy and paste its settings.
+- Storages with identical settings are merged into one column (can be turned off), optionally by item filters only.
+- Click a storage name to show it on the map (names of storages in view are brightened); right-click it to rename it or copy and paste its settings.
 
 Finding what to change
 - Show all items, only items on the map, or only items no storage accepts.
