@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <StorageOverview_NoStorage>這張地圖沒有倉庫區或儲存建築。</StorageOverview_NoStorage>
+  <StorageOverview_Hint>滾輪：上下捲動。Shift+滾輪，或在倉庫名稱上滾動：左右捲動。\n點倉庫名稱：在右側顯示該處。\n右鍵倉庫名稱：改名、複製或貼上設定。\n藍色框線：小人實際會把該物品搬去的倉庫（有收該物品的倉庫中優先度最高者；同優先度全部標示，實際會選最近的）。\n勾選左側方框標記物品：有收已標記物品的倉庫會排到最左邊。</StorageOverview_Hint>
+  <StorageOverview_CollapseAll>全部收合</StorageOverview_CollapseAll>
+  <StorageOverview_ExpandAll>全部展開</StorageOverview_ExpandAll>
+  <StorageOverview_SearchItems>物品</StorageOverview_SearchItems>
+  <StorageOverview_SearchStorages>倉庫</StorageOverview_SearchStorages>
+  <StorageOverview_MergeIdentical>合併設定相同的倉庫</StorageOverview_MergeIdentical>
+  <StorageOverview_ColumnTip>{0}\n優先度：{1}</StorageOverview_ColumnTip>
+  <StorageOverview_ViewAll>顯示：全部物品</StorageOverview_ViewAll>
+  <StorageOverview_ViewOnMap>顯示：地圖上有的物品</StorageOverview_ViewOnMap>
+  <StorageOverview_ViewUnstored>顯示：沒有倉庫收的物品</StorageOverview_ViewUnstored>
+  <StorageOverview_TabLabel>總覽</StorageOverview_TabLabel>
+  <StorageOverview_ClearMarks>清除標記</StorageOverview_ClearMarks>
+  <StorageOverview_MarkTip>標記：有收已標記物品的倉庫會排到最左邊，收得越多越前面；完全沒收的倉庫會變暗並排在分隔線之後。</StorageOverview_MarkTip>
+</LanguageData>

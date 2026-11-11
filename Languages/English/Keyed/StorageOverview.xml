@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <StorageOverview_NoStorage>There are no stockpiles or storage buildings on this map.</StorageOverview_NoStorage>
+  <StorageOverview_Hint>Wheel: scroll rows. Shift + wheel, or wheel over the storage names: scroll columns.\nClick a storage name: show it on the map to the right.\nRight-click a storage name: rename, copy or paste settings.\nBlue outline: where haulers take the item (the highest priority storage that accepts it; on a tie all are outlined and the nearest one is used).\nTick the box at the left of an item to mark it: storages accepting marked items move to the left.</StorageOverview_Hint>
+  <StorageOverview_CollapseAll>Collapse all</StorageOverview_CollapseAll>
+  <StorageOverview_ExpandAll>Expand all</StorageOverview_ExpandAll>
+  <StorageOverview_SearchItems>Items</StorageOverview_SearchItems>
+  <StorageOverview_SearchStorages>Storage</StorageOverview_SearchStorages>
+  <StorageOverview_MergeIdentical>Merge storages with identical settings</StorageOverview_MergeIdentical>
+  <StorageOverview_ColumnTip>{0}\nPriority: {1}</StorageOverview_ColumnTip>
+  <StorageOverview_ViewAll>Show: all items</StorageOverview_ViewAll>
+  <StorageOverview_ViewOnMap>Show: items on the map</StorageOverview_ViewOnMap>
+  <StorageOverview_ViewUnstored>Show: items no storage accepts</StorageOverview_ViewUnstored>
+  <StorageOverview_TabLabel>Overview</StorageOverview_TabLabel>
+  <StorageOverview_ClearMarks>Clear marks</StorageOverview_ClearMarks>
+  <StorageOverview_MarkTip>Mark: storages accepting marked items move to the left, the more they accept the further left; storages accepting none are dimmed and placed after the divider.</StorageOverview_MarkTip>
+</LanguageData>

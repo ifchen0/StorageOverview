@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <StorageOverview.label>倉儲</StorageOverview.label>
+  <StorageOverview.description>並排顯示所有倉庫區、儲存群組與儲存建築的儲存設定。</StorageOverview.description>
+</LanguageData>

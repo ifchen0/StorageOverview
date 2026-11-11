@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>Storage Overview</name>
+  <author>ifchen0</author>
+  <packageId>ifchen0.storageoverview</packageId>
+  <supportedVersions><li>1.6</li><li>1.7</li></supportedVersions>
+  <description>Warning: this mod was written with AI coding tools (Claude Code).
+
+Adds an Overview tab next to the Storage tab of every stockpile and storage building. It opens a table of the storage filters of every stockpile, storage group and storage building on the map, side by side.
+
+The item tree on the left is the same one the vanilla storage tab uses. Each storage is a column of the usual checkboxes, so one row shows at a glance where an item may be stored, and an item missing from a storage that holds everything similar stands out. Opening a category opens it for every column at once. Items a storage can never hold leave its cell empty.
+
+Ticking a box changes that storage's filter exactly like the vanilla storage tab does, including click-and-drag painting.
+
+Safe to add to or remove from an existing save.</description>
+  <modDependencies>
+    <li><packageId>brrainz.harmony</packageId><displayName>Harmony</displayName><steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl></li>
+  </modDependencies>
+  <loadAfter><li>brrainz.harmony</li></loadAfter>
+</ModMetaData>

@@ -1,0 +1,27 @@
+Copyright (c) 2026 ifchen0. All rights reserved.
+
+This repository contains the source code of a RimWorld mod. It is
+published for reference and collaboration, not for redistribution.
+
+You MAY:
+  - Read and study the source code.
+  - Copy small portions (individual methods or patches) into your own
+    mod, provided you credit the original author and link to this
+    repository.
+  - Modify the mod for your own personal use.
+  - Submit issues and pull requests to this repository.
+
+You MAY NOT, without prior written permission from the author:
+  - Re-upload this mod, in original or modified form, to the Steam
+    Workshop or any other distribution site.
+  - Include this mod, its compiled assemblies, or substantial portions
+    of its source code in a modpack, collection archive, or another
+    mod.
+  - Use this mod or its source code for commercial purposes.
+
+Versions of this repository released before this license was adopted
+remain available under the license they were originally released with.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOFTWARE.
