@@ -1,18 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>Storage Overview</name>
+  <name>Storage Overview: All Filters in One Table</name>
   <author>ifchen0</author>
   <packageId>ifchen0.storageoverview</packageId>
+  <url>https://github.com/ifchen0/StorageOverview</url>
   <supportedVersions><li>1.6</li><li>1.7</li></supportedVersions>
   <description>Warning: this mod was written with AI coding tools (Claude Code).
 
-Adds an Overview tab next to the Storage tab of every stockpile and storage building. It opens a table of the storage filters of every stockpile, storage group and storage building on the map, side by side.
+Shows the storage filters of every stockpile, shelf and storage group on the map side by side in one table.
 
-The item tree on the left is the same one the vanilla storage tab uses. Each storage is a column of the usual checkboxes, so one row shows at a glance where an item may be stored, and an item missing from a storage that holds everything similar stands out. Opening a category opens it for every column at once. Items a storage can never hold leave its cell empty.
+Opening it
+Select any stockpile or storage building and click the Overview tab next to the vanilla Storage tab. The table opens scrolled to the storage you selected.
 
-Ticking a box changes that storage's filter exactly like the vanilla storage tab does, including click-and-drag painting.
+The table
+- The item tree on the left is the vanilla storage tree; each storage is a column of the usual checkboxes, and opening a category opens it for every column.
+- Ticking a box works exactly like the vanilla storage tab, including click-and-drag painting.
+- Priority, hit points and quality are rows at the top.
+- Storages with identical settings are merged into one column (can be turned off).
+- Click a storage name to show it on the map; right-click it to rename it or copy and paste its settings.
 
-Safe to add to or remove from an existing save.</description>
+Finding what to change
+- Show all items, only items on the map, or only items no storage accepts.
+- Search items and storages by name.
+- Mark items to move the storages that accept them to the left.
+- A blue outline shows the storage haulers take an item to.
+
+Tested on RimWorld 1.7. Safe to add to or remove from an existing save.</description>
   <modDependencies>
     <li><packageId>brrainz.harmony</packageId><displayName>Harmony</displayName><steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl></li>
   </modDependencies>

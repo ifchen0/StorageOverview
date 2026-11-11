@@ -1,0 +1,27 @@
+Shows the storage filters of every stockpile, shelf and storage group on the map side by side in one table, so you can see and change where everything goes without opening each storage one by one.
+
+[h2]Opening it[/h2]
+Select any stockpile or storage building and click the [b]Overview[/b] tab next to the vanilla Storage tab. The table opens scrolled to the storage you selected, with its name outlined.
+
+[h2]The table[/h2][list]
+[*]The item tree on the left is the vanilla storage tree. Each storage is a column of the usual checkboxes, and opening a category opens it for every column at once. Items a storage can never hold leave its cell empty.
+[*]Ticking a box works exactly like the vanilla storage tab, including click-and-drag painting.
+[*]Priority, hit points and quality are rows at the top: click the priority bars for the vanilla priority menu, and drag the ends of the vertical bars to set the ranges.
+[*]Storages with identical settings are merged into one column (can be turned off). Changes in a merged column apply to all of them.
+[*]Click a storage name to show it on the map to the right of the table. Right-click it to rename it, or to copy or paste its settings with the vanilla clipboard.
+[/list]
+
+[h2]Finding what to change[/h2][list]
+[*][b]Show:[/b] all items, only items that are on the map, or only items no storage accepts, for example new items from a mod you just added.
+[*][b]Search:[/b] filter the items by name, and the storages by name.
+[*][b]Marks:[/b] tick the box at the left of items or categories, and the storages that accept the most of them move to the left. The rest are dimmed behind a divider but can still be ticked.
+[*][b]Blue outline:[/b] the storage haulers actually take an item to, which is the highest priority storage that accepts it. On a tie all are outlined; the nearest one is used.
+[*]The number next to an item is how many are on the map.
+[/list]
+
+[h2]Notes[/h2][list]
+[*]Tested on RimWorld 1.7.
+[*]Safe to add to or remove from an existing save.
+[/list]
+[hr][/hr]
+This mod was developed with the help of AI coding tools (Claude Code). Full source code is included in the Source folder and on [url=https://github.com/ifchen0/StorageOverview]GitHub[/url] for review.
