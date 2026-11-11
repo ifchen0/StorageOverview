@@ -297,7 +297,10 @@ namespace StorageOverview
             return false;
         }
 
-        /// <summary>Stable sort by marked items accepted (partial categories count partly).</summary>
+        /// <summary>
+        /// Stable sort: related columns first, then priority, then marked items accepted
+        /// (partial categories count partly).
+        /// </summary>
         private void OrderByMarks()
         {
             markScores.Clear();
@@ -322,7 +325,31 @@ namespace StorageOverview
                     relatedColumnCount++;
                 }
             }
-            columns = System.Linq.Enumerable.ToList(System.Linq.Enumerable.OrderByDescending(columns, c => markScores[c]));
+            // Related columns first, then by priority (where haulers actually take the items),
+            // then by score; ties keep the original order (stable sort).
+            columns = System.Linq.Enumerable.ToList(
+                System.Linq.Enumerable.ThenByDescending(
+                    System.Linq.Enumerable.ThenByDescending(
+                        System.Linq.Enumerable.OrderByDescending(columns, c => markScores[c] > 0),
+                        TopPriority),
+                    c => markScores[c]));
+        }
+
+        /// <summary>
+        /// Highest priority among the column's members; members differ only when merging by
+        /// item filters, and the highest one is where haulers take the items first.
+        /// </summary>
+        private static StoragePriority TopPriority(StorageColumn column)
+        {
+            StoragePriority top = column.settings.Priority;
+            foreach (StorageColumn m in column.members)
+            {
+                if (m.settings.Priority > top)
+                {
+                    top = m.settings.Priority;
+                }
+            }
+            return top;
         }
 
         private bool Unrelated(StorageColumn column) => marked.Count > 0 && markScores.TryGetValue(column, out int s) && s == 0;

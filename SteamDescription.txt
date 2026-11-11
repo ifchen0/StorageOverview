@@ -14,7 +14,7 @@ Click the [b]Storage[/b] button on the main button bar. In the mod settings it c
 [h2]Finding what to change[/h2][list]
 [*][b]Show:[/b] all items, only items that are on the map, or only items no storage accepts, for example new items from a mod you just added.
 [*][b]Search:[/b] filter the items by name, and the storages by name.
-[*][b]Marks:[/b] tick the box at the left of items or categories, and the storages that accept the most of them move to the left. The rest are dimmed behind a divider but can still be ticked.
+[*][b]Marks:[/b] tick the box at the left of items or categories, and the storages that accept them move to the left: highest priority first, then the ones accepting the most. The rest are dimmed behind a divider but can still be ticked.
 [*][b]Blue outline:[/b] the storage haulers actually take an item to, which is the highest priority storage that accepts it. On a tie all are outlined; the nearest one is used.
 [*][b]Light blue cell:[/b] the storage currently holds that item. Hover it for the count.
 [*][b]Dimmed row:[/b] no storage accepts that item.

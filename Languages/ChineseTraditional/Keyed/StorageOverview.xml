@@ -13,7 +13,7 @@
   <StorageOverview_ViewUnstored>顯示：沒有倉庫收的物品</StorageOverview_ViewUnstored>
   <StorageOverview_TabLabel>總覽</StorageOverview_TabLabel>
   <StorageOverview_ClearMarks>清除標記</StorageOverview_ClearMarks>
-  <StorageOverview_MarkTip>標記：有收已標記物品的倉庫會排到最左邊，收得越多越前面；完全沒收的倉庫會變暗並排在分隔線之後。</StorageOverview_MarkTip>
+  <StorageOverview_MarkTip>標記：有收已標記物品的倉庫會排到最左邊，優先度高的在前，同優先度再依收得越多越前面；完全沒收的倉庫會變暗並排在分隔線之後。</StorageOverview_MarkTip>
   <StorageOverview_HeldTip>{0}：{1} ×{2}</StorageOverview_HeldTip>
   <StorageOverview_SettingOpenFrom>打開總覽表的位置：</StorageOverview_SettingOpenFrom>
   <StorageOverview_OpenFromMainBar>主工作列（畫面下方）</StorageOverview_OpenFromMainBar>
