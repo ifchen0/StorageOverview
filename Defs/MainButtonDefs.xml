@@ -6,7 +6,6 @@
     <description>Storage filters of every stockpile, storage group and storage building, side by side.</description>
     <tabWindowClass>StorageOverview.MainTabWindow_StorageOverview</tabWindowClass>
     <order>55</order>
-    <!-- Opened from the overview tab next to the Storage tab instead of the main bar. -->
-    <buttonVisible>false</buttonVisible>
+    <!-- Visibility follows the mod setting (main bar or Overview inspect tab). -->
   </MainButtonDef>
 </Defs>

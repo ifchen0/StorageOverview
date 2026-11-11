@@ -38,7 +38,7 @@ namespace StorageOverview
         }
 
         /// <summary>The settings owner the overview shows as a column for this selection.</summary>
-        private static IStoreSettingsParent OwnerOf(object selected)
+        public static IStoreSettingsParent OwnerOf(object selected)
         {
             switch (selected)
             {
@@ -68,19 +68,10 @@ namespace StorageOverview
                 }
                 def.inspectorTabs ??= new System.Collections.Generic.List<System.Type>();
                 def.inspectorTabs.Add(typeof(ITab_StorageOverview));
-                InsertBeforeStorageTab(def.inspectorTabsResolved, tab);
+                def.inspectorTabsResolved.Add(tab);
             }
             new Harmony("ifchen0.storageoverview").PatchAll();
-        }
-
-        /// <summary>
-        /// Tabs are drawn right to left in list order, so inserting just before the Storage
-        /// tab puts the overview tab right next to it, whatever other mods add later.
-        /// </summary>
-        public static void InsertBeforeStorageTab(System.Collections.Generic.List<InspectTabBase> tabs, InspectTabBase tab)
-        {
-            int index = tabs.FindIndex(t => t is ITab_Storage);
-            tabs.Insert(index < 0 ? tabs.Count : index, tab);
+            StorageOverviewMod.ApplyEntryPoint();
         }
     }
 
@@ -92,13 +83,57 @@ namespace StorageOverview
 
         public static void Postfix(ref System.Collections.Generic.IEnumerable<InspectTabBase> __result)
         {
-            if (tabs == null)
-            {
-                var list = __result.ToList();
-                StorageOverviewStartup.InsertBeforeStorageTab(list, InspectTabManager.GetSharedInstance(typeof(ITab_StorageOverview)));
-                tabs = list.ToArray();
-            }
+            tabs ??= __result.Append(InspectTabManager.GetSharedInstance(typeof(ITab_StorageOverview))).ToArray();
             __result = tabs;
+        }
+    }
+
+    /// <summary>
+    /// Hides the overview tab unless it is the chosen entry point, and otherwise keeps it
+    /// leftmost (tabs are drawn right to left in list order) so it never takes the place of
+    /// a tab players already click by habit, whatever other mods add and whenever they add
+    /// it. Only rebuilds the list when needed, into a reused buffer.
+    /// </summary>
+    [HarmonyPatch(typeof(MainTabWindow_Inspect), nameof(MainTabWindow_Inspect.CurTabs), MethodType.Getter)]
+    public static class MainTabWindow_Inspect_CurTabs_Patch
+    {
+        private static readonly System.Collections.Generic.List<InspectTabBase> buffer =
+            new System.Collections.Generic.List<InspectTabBase>();
+
+        public static void Postfix(ref System.Collections.Generic.IEnumerable<InspectTabBase> __result)
+        {
+            if (__result == null)
+            {
+                return;
+            }
+            InspectTabBase overview = null;
+            InspectTabBase last = null;
+            foreach (InspectTabBase tab in __result)
+            {
+                if (tab is ITab_StorageOverview)
+                {
+                    overview = tab;
+                }
+                last = tab;
+            }
+            bool show = StorageOverviewMod.Settings?.openFromInspectTab ?? false;
+            if (overview == null || (show && last == overview))
+            {
+                return;
+            }
+            buffer.Clear();
+            foreach (InspectTabBase tab in __result)
+            {
+                if (tab != overview)
+                {
+                    buffer.Add(tab);
+                }
+            }
+            if (show)
+            {
+                buffer.Add(overview);
+            }
+            __result = buffer;
         }
     }
 }

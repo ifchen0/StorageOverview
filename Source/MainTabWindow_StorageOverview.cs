@@ -151,6 +151,11 @@ namespace StorageOverview
         public override void PreOpen()
         {
             base.PreOpen();
+            // Opened from the main bar: focus whatever storage is selected, like the tab does.
+            if (!focusPending)
+            {
+                FocusOn(ITab_StorageOverview.OwnerOf(Find.Selector.SingleSelectedObject));
+            }
             Rebuild();
         }
 

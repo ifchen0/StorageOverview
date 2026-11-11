@@ -15,4 +15,7 @@
   <StorageOverview_ClearMarks>Clear marks</StorageOverview_ClearMarks>
   <StorageOverview_MarkTip>Mark: storages accepting marked items move to the left, the more they accept the further left; storages accepting none are dimmed and placed after the divider.</StorageOverview_MarkTip>
   <StorageOverview_HeldTip>{0}: {1} ×{2}</StorageOverview_HeldTip>
+  <StorageOverview_SettingOpenFrom>Open the table from:</StorageOverview_SettingOpenFrom>
+  <StorageOverview_OpenFromMainBar>The main button bar (bottom of the screen)</StorageOverview_OpenFromMainBar>
+  <StorageOverview_OpenFromInspectTab>The leftmost "Overview" tab of a selected stockpile or storage building</StorageOverview_OpenFromInspectTab>
 </LanguageData>

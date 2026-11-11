@@ -10,7 +10,7 @@
 Shows the storage filters of every stockpile, shelf and storage group on the map side by side in one table.
 
 Opening it
-Select any stockpile or storage building and click the Overview tab next to the vanilla Storage tab. The table opens scrolled to the storage you selected.
+Click the Storage button on the main button bar. In the mod settings it can be moved to an Overview tab instead, the leftmost tab of a selected stockpile or storage building. If a storage is selected when the table opens, it scrolls to that storage.
 
 The table
 - The item tree on the left is the vanilla storage tree; each storage is a column of the usual checkboxes, and opening a category opens it for every column.
