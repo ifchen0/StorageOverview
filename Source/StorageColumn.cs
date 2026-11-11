@@ -73,6 +73,31 @@ namespace StorageOverview
 
         public ThingFilter Filter => settings.filter;
 
+        /// <summary>Stack counts by def of what this single storage holds right now.</summary>
+        public Dictionary<ThingDef, int> CountHeld()
+        {
+            var counts = new Dictionary<ThingDef, int>();
+            IEnumerable<Thing> things = owner switch
+            {
+                StorageGroup group => group.HeldThings,
+                ISlotGroupParent parent => parent.GetSlotGroup()?.HeldThings,
+                _ => null,
+            };
+            if (things == null)
+            {
+                return counts;
+            }
+            foreach (Thing thing in things)
+            {
+                ThingDef def = thing is MinifiedThing minified && minified.InnerThing != null
+                    ? minified.InnerThing.def
+                    : thing.def;
+                counts.TryGetValue(def, out int count);
+                counts[def] = count + thing.stackCount;
+            }
+            return counts;
+        }
+
         public bool IsMerged => members.Count > 1;
 
         public bool NameMatches(QuickSearchFilter search) => members.Any(m => search.Matches(m.label));

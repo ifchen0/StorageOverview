@@ -26,6 +26,11 @@ namespace StorageOverview
         private const float CheckSize = 20f;
         private const float ScrollBarSize = 16f;
         private const int StateCacheFrames = 30;
+        /// <summary>Stored contents are recounted about once a second.</summary>
+        private const int HeldRefreshFrames = 60;
+
+        /// <summary>Soft tint on cells whose storage currently holds the item.</summary>
+        private static readonly Color HeldColor = new Color(0.4f, 0.65f, 1f, 0.32f);
 
         private static readonly Color NoMatchColor = Color.grey;
 
@@ -65,7 +70,13 @@ namespace StorageOverview
         /// <summary>Columns with a score above zero; a divider is drawn after them.</summary>
         private int relatedColumnCount;
 
-        /// <summary>Storage picked from its inspect tab; its column is scrolled to and outlined.</summary>
+        /// <summary>What each single storage (unmerged) holds, by def.</summary>
+        private readonly Dictionary<StorageColumn, Dictionary<ThingDef, int>> held =
+            new Dictionary<StorageColumn, Dictionary<ThingDef, int>>();
+        private readonly Dictionary<ThingCategoryDef, bool[]> categoryHeld = new Dictionary<ThingCategoryDef, bool[]>();
+        private int heldFrame = -1;
+
+        /// <summary>Storage picked from its inspect tab; the table opens scrolled to its column.</summary>
         private IStoreSettingsParent focusOwner;
         private bool focusPending;
         /// <summary>Things of each def on the map (minified buildings by their inner def).</summary>
@@ -126,9 +137,14 @@ namespace StorageOverview
         /// <summary>Rows are narrowed down and categories open on their own.</summary>
         private bool Filtering => Search.Active || viewMode != ViewMode.All;
 
+        /// <summary>Rows no shown storage accepts (all crosses); drawn dimmed.</summary>
+        private readonly Dictionary<Row, bool> rowRejected = new Dictionary<Row, bool>();
+
         private void InvalidateStates()
         {
             categoryStates.Clear();
+            rowRejected.Clear();
+            categoryHeld.Clear();
             destinationPriority.Clear();
         }
 
@@ -144,6 +160,7 @@ namespace StorageOverview
             allColumns = map != null ? StorageColumn.CollectFrom(map) : new List<StorageColumn>();
             CountMapThings();
             ApplyColumnFilter();
+            CountHeld(logTime: true);
             lastStorageCount = StorageCount(map);
         }
 
@@ -161,6 +178,69 @@ namespace StorageOverview
                     : thing.def;
                 mapCounts.TryGetValue(def, out int count);
                 mapCounts[def] = count + thing.stackCount;
+            }
+        }
+
+        /// <summary>Recounts what every storage holds; one pass over the stored stacks.</summary>
+        private void CountHeld(bool logTime)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            held.Clear();
+            categoryHeld.Clear();
+            int entries = 0;
+            foreach (StorageColumn column in allColumns)
+            {
+                Dictionary<ThingDef, int> counts = column.CountHeld();
+                held[column] = counts;
+                entries += counts.Count;
+            }
+            heldFrame = Time.frameCount;
+            if (logTime && Prefs.DevMode)
+            {
+                Log.Message($"[StorageOverview] counted stored items of {allColumns.Count} storages ({entries} def entries) in {watch.Elapsed.TotalMilliseconds:F2} ms");
+            }
+        }
+
+        private int HeldCount(StorageColumn column, ThingDef def)
+        {
+            int total = 0;
+            foreach (StorageColumn member in column.members)
+            {
+                if (held.TryGetValue(member, out Dictionary<ThingDef, int> counts) && counts.TryGetValue(def, out int count))
+                {
+                    total += count;
+                }
+            }
+            return total;
+        }
+
+        private bool CategoryHeld(ThingCategoryDef cat, int columnIndex)
+        {
+            if (!categoryHeld.TryGetValue(cat, out bool[] states))
+            {
+                states = new bool[columns.Count];
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    foreach (StorageColumn member in columns[i].members)
+                    {
+                        if (held.TryGetValue(member, out Dictionary<ThingDef, int> counts)
+                            && System.Linq.Enumerable.Any(counts.Keys, def => def.IsWithinCategory(cat)))
+                        {
+                            states[i] = true;
+                            break;
+                        }
+                    }
+                }
+                categoryHeld[cat] = states;
+            }
+            return states[columnIndex];
+        }
+
+        private static void DrawHeldTint(Rect rect, bool isHeld)
+        {
+            if (isHeld)
+            {
+                Widgets.DrawBoxSolid(rect.ContractedBy(1f), HeldColor);
             }
         }
 
@@ -445,6 +525,10 @@ namespace StorageOverview
                 rowsDirty = false;
                 BuildRows();
             }
+            if (Time.frameCount - heldFrame > HeldRefreshFrames)
+            {
+                CountHeld(logTime: false);
+            }
             if (Time.frameCount - stateCacheFrame > StateCacheFrames)
             {
                 InvalidateStates();
@@ -552,6 +636,10 @@ namespace StorageOverview
                 {
                     DrawCell(new Rect(c * ColumnWidth, y, ColumnWidth, RowHeight), rows[r], c);
                 }
+                if (RowRejected(rows[r]))
+                {
+                    Widgets.DrawBoxSolid(new Rect(scroll.x, y, bodyRect.width - ScrollBarSize, RowHeight), DimColor);
+                }
             }
             if (marked.Count > 0)
             {
@@ -579,6 +667,10 @@ namespace StorageOverview
                     Widgets.DrawHighlight(rowRect);
                 }
                 DrawRowLabel(rowRect, rows[r]);
+                if (RowRejected(rows[r]))
+                {
+                    Widgets.DrawBoxSolid(rowRect, DimColor);
+                }
             }
             Widgets.EndGroup();
 
@@ -591,12 +683,6 @@ namespace StorageOverview
                     Widgets.DrawHighlight(rect);
                 }
                 DrawHeader(rect, columns[c]);
-                if (HasFocus(columns[c]))
-                {
-                    GUI.color = new Color(1f, 0.85f, 0.4f);
-                    Widgets.DrawBox(rect.ContractedBy(1f), 2);
-                    GUI.color = Color.white;
-                }
                 if (Unrelated(columns[c]))
                 {
                     Widgets.DrawBoxSolid(rect, new Color(0f, 0f, 0f, 0.45f));
@@ -727,6 +813,44 @@ namespace StorageOverview
             Text.Anchor = TextAnchor.UpperLeft;
             columnSearch.OnGUI(columnSearchRect, () => columnsDirty = true);
             search.OnGUI(searchRect, () => rowsDirty = true);
+        }
+
+        private static readonly Color DimColor = new Color(0f, 0f, 0f, 0.45f);
+
+        /// <summary>
+        /// True when every shown storage that could hold the row's items refuses all of them.
+        /// Special filter rows are never dimmed.
+        /// </summary>
+        private bool RowRejected(Row row)
+        {
+            if (rowRejected.TryGetValue(row, out bool rejected))
+            {
+                return rejected;
+            }
+            rejected = false;
+            switch (row.kind)
+            {
+                case RowKind.Def:
+                    rejected = !columns.Exists(c => c.visibleDefs.Contains(row.def) && c.Filter.Allows(row.def));
+                    break;
+                case RowKind.Undiscovered:
+                    rejected = !columns.Exists(c => row.undiscovered.Exists(d => c.visibleDefs.Contains(d) && c.Filter.Allows(d)));
+                    break;
+                case RowKind.Category:
+                    rejected = true;
+                    for (int i = 0; i < columns.Count; i++)
+                    {
+                        MultiCheckboxState? state = CategoryState(row.node.catDef, i);
+                        if (state != null && state != MultiCheckboxState.Off)
+                        {
+                            rejected = false;
+                            break;
+                        }
+                    }
+                    break;
+            }
+            rowRejected[row] = rejected;
+            return rejected;
         }
 
         private static string ModeLabel(ViewMode mode)
@@ -1236,6 +1360,12 @@ namespace StorageOverview
                         return;
                     }
                     bool on = column.Filter.Allows(row.def);
+                    int heldCount = HeldCount(column, row.def);
+                    if (heldCount > 0)
+                    {
+                        DrawHeldTint(rect, true);
+                        TooltipHandler.TipRegion(rect, "StorageOverview_HeldTip".Translate(column.label, row.def.LabelCap, heldCount));
+                    }
                     if (on && column.Priority == DestinationPriority(row.def))
                     {
                         // Where haulers take this item: the highest priority storage allowing it
@@ -1278,6 +1408,7 @@ namespace StorageOverview
                 case RowKind.Category:
                 {
                     ThingCategoryDef cat = row.node.catDef;
+                    DrawHeldTint(rect, CategoryHeld(cat, columnIndex));
                     DrawGroupCell(checkRect, column, cat.DescendantThingDefs, cat.DescendantSpecialThingFilterDefs, CategoryState(cat, columnIndex));
                     break;
                 }

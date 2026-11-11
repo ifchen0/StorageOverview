@@ -23,7 +23,7 @@ Finding what to change
 - Show all items, only items on the map, or only items no storage accepts.
 - Search items and storages by name.
 - Mark items to move the storages that accept them to the left.
-- A blue outline shows the storage haulers take an item to.
+- A blue outline shows the storage haulers take an item to; a light blue cell shows what a storage holds now; rows no storage accepts are dimmed.
 
 Tested on RimWorld 1.7. Safe to add to or remove from an existing save.</description>
   <modDependencies>
