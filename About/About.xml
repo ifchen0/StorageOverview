@@ -17,7 +17,7 @@ The table
 - Ticking a box works exactly like the vanilla storage tab, including click-and-drag painting.
 - Priority, hit points and quality are rows at the top.
 - Storages with identical settings are merged into one column (can be turned off), optionally by item filters only.
-- Click a storage name to show it on the map (names of storages in view are brightened); right-click it to rename it or copy and paste its settings.
+- Hover a storage column to point at it with arrows and show it on the map (names of storages in view are brightened); right-click a name to rename it or copy and paste its settings.
 
 Finding what to change
 - Show all items, only items on the map, or only items no storage accepts.

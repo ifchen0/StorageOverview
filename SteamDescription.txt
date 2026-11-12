@@ -8,7 +8,7 @@ Click the [b]Storage[/b] button on the main button bar. In the mod settings it c
 [*]Ticking a box works exactly like the vanilla storage tab, including click-and-drag painting.
 [*]Priority, hit points and quality are rows at the top: click the priority bars for the vanilla priority menu, and drag the ends of the vertical bars to set the ranges.
 [*]Storages with identical settings are merged into one column (can be turned off). Changes in a merged column apply to all of them. Another option merges by item filters only, to change the items of similar storages together even when their priority, hit points or quality differ.
-[*]Click a storage name to show it on the map to the right of the table. Names of the storages in that map view are brightened. Right-click it to rename it, or to copy or paste its settings with the vanilla clipboard.
+[*]Hover a storage column and arrows point at every part of that storage; pause briefly and the map to the right of the table moves to one of them. Names of the storages in that map view are brightened. Right-click a name to rename it, or to copy or paste its settings with the vanilla clipboard.
 [/list]
 
 [h2]Finding what to change[/h2][list]

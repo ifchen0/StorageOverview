@@ -121,6 +121,14 @@ namespace StorageOverview
 
         private bool ItemsOnly => mergeIdentical && mergeItemsOnly;
 
+        /// <summary>Hovering one column this long moves the camera to it; just passing over does not.</summary>
+        private const float HoverJumpDelay = 0.3f;
+
+        // Column under the mouse, since when, and whether the camera already moved for it.
+        private StorageColumn hoverTarget;
+        private float hoverSince;
+        private bool hoverJumped;
+
         // Rename dialog opened from a header; names are re-read once it closes.
         private Window renameDialog;
         private bool columnsDirty;
@@ -156,6 +164,8 @@ namespace StorageOverview
         {
             map = Find.CurrentMap;
             allColumns = map != null ? StorageColumn.CollectFrom(map) : new List<StorageColumn>();
+            StorageArrows.ClearCache();
+            hoverTarget = null;
             CountMapThings();
             ApplyColumnFilter();
             CountHeld(logTime: true);
@@ -608,6 +618,11 @@ namespace StorageOverview
                 lastRow--;
             }
 
+            if (Event.current.type == EventType.Repaint)
+            {
+                UpdateHoverTarget(mouse, headerRect, bodyRect);
+            }
+
             CellRect mapView = VisibleMapCells();
             DrawCorner(cornerRect);
 
@@ -1057,10 +1072,6 @@ namespace StorageOverview
                 e.Use();
                 OpenHeaderMenu(column);
             }
-            if (Widgets.ButtonInvisible(rect))
-            {
-                JumpTo(column);
-            }
         }
 
         /// <summary>Right-click menu: rename, and the vanilla storage settings clipboard.</summary>
@@ -1195,65 +1206,55 @@ namespace StorageOverview
         }
 
         /// <summary>
-        /// Moves the camera so the storage sits in the middle of the map strip right of
-        /// this tab.
+        /// Column under the mouse (header or body, scrollbars excluded) gets arrows at once
+        /// and the camera after HoverJumpDelay, so sweeping across columns does not shake it.
+        /// </summary>
+        private void UpdateHoverTarget(Vector2 mouse, Rect headerRect, Rect bodyRect)
+        {
+            StorageColumn column = null;
+            if (!Find.WindowStack.MouseObscuredNow
+                && mouse.x >= bodyRect.x && mouse.x < bodyRect.xMax - ScrollBarSize
+                && mouse.y >= headerRect.y && mouse.y < bodyRect.yMax - ScrollBarSize)
+            {
+                int c = Mathf.FloorToInt((mouse.x - bodyRect.x + scroll.x) / ColumnWidth);
+                if (c >= 0 && c < columns.Count)
+                {
+                    column = columns[c];
+                }
+            }
+            if (column != hoverTarget)
+            {
+                hoverTarget = column;
+                hoverSince = Time.realtimeSinceStartup;
+                hoverJumped = false;
+            }
+            if (column == null)
+            {
+                return;
+            }
+            StorageArrows.Show(column, map, windowRect.xMax);
+            if (!hoverJumped && Time.realtimeSinceStartup - hoverSince >= HoverJumpDelay)
+            {
+                hoverJumped = true;
+                JumpTo(column);
+            }
+        }
+
+        /// <summary>
+        /// Moves the camera so one part of the storage (the one nearest the middle of all its
+        /// parts) sits in the middle of the map strip right of this tab; arrows point at the rest.
         /// </summary>
         private void JumpTo(StorageColumn column)
         {
             // Camera only, no selection: some storage mods (Adaptive Storage Framework) open
             // the inspect pane when their building is selected, which closes this tab.
-            Vector3 sum = Vector3.zero;
-            int count = 0;
-            foreach (StorageColumn member in column.members)
-            {
-                if (TryGetCenter(member.owner, out Vector3 center))
-                {
-                    sum += center;
-                    count++;
-                }
-            }
-            if (count == 0)
+            if (!StorageArrows.TryGetAnchor(column, out Vector3 target))
             {
                 return;
             }
-            Vector3 target = sum / count;
             float freeCenterX = (windowRect.xMax + UI.screenWidth) / 2f;
             float offsetCells = (freeCenterX - UI.screenWidth / 2f) / Find.CameraDriver.CellSizePixels;
             Find.CameraDriver.JumpToCurrentMapLoc(target - new Vector3(offsetCells, 0f, 0f));
-        }
-
-
-        /// <summary>Centre of the cells or buildings one storage owner covers.</summary>
-        private static bool TryGetCenter(IStoreSettingsParent owner, out Vector3 center)
-        {
-            Vector3 sum = Vector3.zero;
-            int count = 0;
-            switch (owner)
-            {
-                case StorageGroup group:
-                    foreach (IStorageGroupMember member in group.members)
-                    {
-                        if (member is Thing thing && thing.Spawned)
-                        {
-                            sum += thing.DrawPos;
-                            count++;
-                        }
-                    }
-                    break;
-                case Zone zone:
-                    foreach (IntVec3 cell in zone.Cells)
-                    {
-                        sum += cell.ToVector3Shifted();
-                        count++;
-                    }
-                    break;
-                case Thing thing when thing.Spawned:
-                    sum = thing.DrawPos;
-                    count = 1;
-                    break;
-            }
-            center = count > 0 ? sum / count : Vector3.zero;
-            return count > 0;
         }
 
         // ------------------------------------------- priority / hit points / quality
