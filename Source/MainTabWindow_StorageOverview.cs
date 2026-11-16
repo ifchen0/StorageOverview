@@ -51,7 +51,27 @@ namespace StorageOverview
         }
 
         private readonly List<Row> rows = new List<Row>();
-        private readonly HashSet<ThingCategoryDef> expanded = new HashSet<ThingCategoryDef>();
+        private readonly HashSet<ThingCategoryDef> expandedAll = new HashSet<ThingCategoryDef>();
+
+        /// <summary>Open categories in the narrowed views (on map / unstored); starts fully open.</summary>
+        private HashSet<ThingCategoryDef> expandedNarrowed;
+
+        /// <summary>The "All" view keeps its own open categories so the narrowed views can start fully open.</summary>
+        private HashSet<ThingCategoryDef> expanded
+        {
+            get
+            {
+                if (viewMode == ViewMode.All)
+                {
+                    return expandedAll;
+                }
+                if (expandedNarrowed == null)
+                {
+                    expandedNarrowed = new HashSet<ThingCategoryDef>(DefDatabase<ThingCategoryDef>.AllDefsListForReading);
+                }
+                return expandedNarrowed;
+            }
+        }
         private readonly HashSet<ThingDef> anyVisible = new HashSet<ThingDef>();
         private readonly HashSet<SpecialThingFilterDef> anyVisibleSpecial = new HashSet<SpecialThingFilterDef>();
         private readonly Dictionary<ThingCategoryDef, bool> categoryShown = new Dictionary<ThingCategoryDef, bool>();
@@ -137,8 +157,11 @@ namespace StorageOverview
 
         private QuickSearchFilter Search => search.filter;
 
-        /// <summary>Rows are narrowed down and categories open on their own.</summary>
+        /// <summary>Rows are narrowed down; categories that list nothing are hidden.</summary>
         private bool Filtering => Search.Active || viewMode != ViewMode.All;
+
+        /// <summary>Categories open on their own and ignore clicks (search only; view modes stay collapsible).</summary>
+        private bool ForceExpanded => Search.Active;
 
         /// <summary>Rows no shown storage accepts (all crosses); drawn dimmed.</summary>
         private readonly Dictionary<Row, bool> rowRejected = new Dictionary<Row, bool>();
@@ -468,7 +491,7 @@ namespace StorageOverview
                     kind = RowKind.Category, indent = indent, node = child,
                     dimmed = searching && !matched,
                 });
-                if (Filtering || expanded.Contains(child.catDef))
+                if (ForceExpanded || expanded.Contains(child.catDef))
                 {
                     AddChildren(child, indent + 1, matched);
                 }
@@ -850,18 +873,18 @@ namespace StorageOverview
                 mergeItemsOnly = ignore;
                 columnsDirty = true;
             }
-            if (Widgets.ButtonText(buttonRect, "StorageOverview_CollapseAll".Translate()))
+            if (ButtonTextDimmable(buttonRect, "StorageOverview_CollapseAll".Translate(), active: !ForceExpanded))
             {
                 expanded.Clear();
                 rowsDirty = true;
             }
-            if (Widgets.ButtonText(new Rect(buttonRect.xMax + gap, buttonRect.y, buttonRect.width, buttonRect.height),
-                "StorageOverview_ExpandAll".Translate()))
+            if (ButtonTextDimmable(new Rect(buttonRect.xMax + gap, buttonRect.y, buttonRect.width, buttonRect.height),
+                "StorageOverview_ExpandAll".Translate(), active: !ForceExpanded))
             {
                 expanded.UnionWith(DefDatabase<ThingCategoryDef>.AllDefsListForReading);
                 rowsDirty = true;
             }
-            if (Widgets.ButtonText(new Rect(buttonRect.xMax + buttonWidth + 2f * gap, buttonRect.y, buttonRect.width, buttonRect.height),
+            if (ButtonTextDimmable(new Rect(buttonRect.xMax + buttonWidth + 2f * gap, buttonRect.y, buttonRect.width, buttonRect.height),
                 "StorageOverview_ClearMarks".Translate(), active: marked.Count > 0))
             {
                 marked.Clear();
@@ -873,6 +896,21 @@ namespace StorageOverview
             Text.Anchor = TextAnchor.UpperLeft;
             columnSearch.OnGUI(columnSearchRect, () => columnsDirty = true);
             search.OnGUI(searchRect, () => rowsDirty = true);
+        }
+
+        /// <summary>
+        /// Vanilla ButtonText only blocks clicks when inactive; this also greys the button out.
+        /// </summary>
+        private static bool ButtonTextDimmable(Rect rect, string label, bool active)
+        {
+            Color old = GUI.color;
+            if (!active)
+            {
+                GUI.color = Color.gray;
+            }
+            bool clicked = Widgets.ButtonText(rect, label, active: active);
+            GUI.color = old;
+            return clicked;
         }
 
         private static readonly Color DimColor = new Color(0f, 0f, 0f, 0.45f);
@@ -974,10 +1012,10 @@ namespace StorageOverview
             {
                 case RowKind.Category:
                 {
-                    bool open = Filtering || expanded.Contains(row.node.catDef);
+                    bool open = ForceExpanded || expanded.Contains(row.node.catDef);
                     GUI.DrawTexture(iconRect, open ? TexButton.Collapse : TexButton.Reveal);
                     Widgets.Label(labelRect, row.node.LabelCap.Truncate(labelRect.width));
-                    if (!Filtering && Widgets.ButtonInvisible(new Rect(x, rect.y, rect.xMax - x, RowHeight)))
+                    if (!ForceExpanded &&Widgets.ButtonInvisible(new Rect(x, rect.y, rect.xMax - x, RowHeight)))
                     {
                         if (open)
                         {
