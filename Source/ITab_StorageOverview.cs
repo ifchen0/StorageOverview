@@ -51,7 +51,7 @@ namespace StorageOverview
                 def.inspectorTabs.Add(typeof(ITab_StorageOverview));
                 def.inspectorTabsResolved.Add(tab);
             }
-            new Harmony("ifchen0.storageoverview").PatchAll();
+            new Harmony("ifchen0.storageoverview").PatchAll(typeof(StorageOverviewStartup).Assembly);
             StorageOverviewMod.ApplyEntryPoint();
         }
     }
